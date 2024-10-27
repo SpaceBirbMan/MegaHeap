@@ -7,7 +7,7 @@
 using namespace std;
 
 void testHeap() {
-    Heap heap;
+    Heap<int> heap; // Указываем тип int
 
     // Тест: Пустая куча
     assert(heap.empty());
@@ -59,7 +59,6 @@ void testHeap() {
 
     heap.push(-15);
     assert(heap.top() == -5); // Вершина остается -5
-
 
     // Тест: Вставка одинаковых положительных и отрицательных значений
     heap.push(15);
@@ -115,7 +114,48 @@ void testHeap() {
     assert(heap.empty());
 }
 
+void testHeapSort() {
+    // Тест 1: Пустая куча
+    assert(Heap<int>::sort({}).empty());
+
+    // Тест 2: Один элемент
+    assert(Heap<int>::sort({ 5 }) == std::vector<int>{5});
+
+    // Тест 3: Два элемента
+    std::vector<int> a = std::vector<int>{ 10, 5 };
+    assert(Heap<int>::sort({ 5, 10 }) == a);
+
+    // Тест 4: Упорядоченный массив
+    a = std::vector<int>{ 10, 8, 5, 3 };
+    assert(Heap<int>::sort({ 3, 8, 5, 10 }) == a);
+
+    // Тест 5: Неупорядоченный массив
+    a = std::vector<int>{ 5, 4, 3, 2, 1 };
+    assert(Heap<int>::sort({ 4, 1, 3, 2, 5 }) == a);
+
+    // Тест 6: Повторяющиеся элементы
+    a = std::vector<int>{ 7, 7, 7, 5, 3 };
+    assert(Heap<int>::sort({ 7, 7, 3, 7, 5 }) == a);
+
+    // Тест 7: Отрицательные числа
+    a = std::vector<int>{ -1, -2, -3 };
+    assert(Heap<int>::sort({ -1, -3, -2 }) == a);
+
+    // Тест 8: Большой массив
+    std::vector<int> largeArray;
+    for (int i = 100; i >= 1; --i) {
+        largeArray.push_back(i);
+    }
+    auto sorted = Heap<int>::sort(largeArray);
+    for (int i = 0; i < 100; ++i) {
+        assert(sorted[i] == 100 - i);
+    }
+
+    std::cout << "All tests passed!\n";
+}
+
 int main() {
+    testHeapSort();
     testHeap();
     std::cout << "All tests passed!" << std::endl;
     return 0;

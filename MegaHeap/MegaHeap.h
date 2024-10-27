@@ -2,26 +2,35 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <algorithm> // для std::reverse
+#include <stdexcept> // для std::runtime_error
+#include <type_traits> // для std::enable_if
 
 /// Класс Heap представляет собой MaxHeap (максимальную бинарную кучу)
 /// Куча — это структура данных, которая поддерживает свойства дерева.
 /// Каждый узел имеет не более двух потомков, а значение узла всегда
 /// больше значений его потомков (для MaxHeap).
+template <typename T>
 class Heap {
+    static_assert(std::is_arithmetic<T>::value, "Heap can only be instantiated with arithmetic types.");
+
 public:
+    // Конструктор, принимающий вектор для инициализации кучи
+    Heap(const std::vector<T>& elements) {
+        for (const T& element : elements) {
+            push(element); // Вставка элементов в кучу
+        }
+    }
+
     Heap() {}
 
     /// Вставка элемента в кучу, сложность O(log n)
-    /// Новый элемент добавляется в конец и поднимается вверх для
-    /// восстановления свойства кучи.
-    void push(int value) {
+    void push(T value) {
         data.push_back(value); // Добавляем новый элемент в конец массива
         heapifyUp(data.size() - 1); // Восстанавливаем структуру кучи снизу вверх
     }
 
     /// Удаление корня (максимального элемента для MaxHeap), сложность O(log n)
-    /// Элемент корня заменяется последним элементом, и восстанавливается
-    /// структура кучи методом спуска вниз.
     void pop() {
         if (data.empty()) {
             throw std::runtime_error("Heap is empty!");
@@ -34,7 +43,7 @@ public:
     }
 
     /// Получение максимального элемента (для MaxHeap)
-    int top() const {
+    T top() const {
         if (data.empty()) {
             throw std::runtime_error("Heap is empty!");
         }
@@ -56,56 +65,54 @@ public:
     }
 
     /// Поиск элемента в куче
-    /// Возвращает true, если элемент найден, иначе false.
-    bool find(int value) const {
-        for (const int& element : data) {
+    bool find(const T& value) const {
+        for (const T& element : data) {
             if (element == value) {
                 return true;
             }
         }
         return false;
+    }
 
-        // Метод find выполняет линейный поиск по вектору data, 
-        // проверяя, есть ли в куче указанный элемент value.
-        // Этот подход оправдан, так как элементы 
-        // в бинарной куче не упорядочены линейно.
+    /// Сортировка с использованием кучи
+    static std::vector<T> sort(const std::vector<T>& d) {
+        Heap heap(d); // Создаём кучу из входных данных
+        std::vector<T> sorted;
+
+        while (!heap.empty()) {
+            sorted.push_back(heap.top()); // Получаем максимальный элемент
+            heap.pop(); // Удаляем его из кучи
+        }
+        return sorted; // Возвращаем отсортированный вектор
     }
 
 private:
-    std::vector<int> data; // Вектор для хранения элементов кучи
+    std::vector<T> data; // Вектор для хранения элементов кучи
 
-    /// Восстановление структуры кучи снизу вверх (up-heapify), сложность O(log n)
-    /// Если новый элемент нарушает порядок, он поднимается вверх до
-    /// достижения правильной позиции.
+    /// Восстановление структуры кучи снизу вверх
     void heapifyUp(int index) {
         while (index > 0 && data[parent(index)] < data[index]) {
-            std::cout << "heapifyUp: swapping " << data[parent(index)] << " and " << data[index] << "\n";
             std::swap(data[parent(index)], data[index]);
             index = parent(index);
         }
     }
 
-    /// Восстановление структуры кучи сверху вниз (down-heapify), сложность O(log n)
-    /// Если корень нарушает порядок, он опускается вниз, пока не станет на место.
+    /// Восстановление структуры кучи сверху вниз
     void heapifyDown(int index) {
         while (true) {
             int maxIndex = index;
             int leftChildIndex = leftChild(index);
             int rightChildIndex = rightChild(index);
 
-            // Проверяем левый дочерний узел
             if (leftChildIndex < data.size() && data[leftChildIndex] > data[maxIndex]) {
                 maxIndex = leftChildIndex;
             }
 
-            // Проверяем правый дочерний узел
             if (rightChildIndex < data.size() && data[rightChildIndex] > data[maxIndex]) {
                 maxIndex = rightChildIndex;
             }
 
-            // Если порядок нарушен, меняем местами и продолжаем проверку
             if (index != maxIndex) {
-                std::cout << "heapifyDown: swapping " << data[index] << " and " << data[maxIndex] << "\n";
                 std::swap(data[index], data[maxIndex]);
                 index = maxIndex;
             }
@@ -120,7 +127,7 @@ private:
         return (index - 1) / 2;
     }
 
-    // Возвращает индекс левого потомка
+    /// Возвращает индекс левого потомка
     int leftChild(int index) const {
         return 2 * index + 1;
     }
